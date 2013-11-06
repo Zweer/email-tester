@@ -1,0 +1,21 @@
+{
+  "name": "email-tester",
+  "version": "0.0.1",
+  "description": "A simple mailer to test your html emails",
+  "keywords": ["email", "smtp"],
+  "author": "Niccolò Olivieri <flicofloc@gmail.com>",
+  "repository" : {
+    "type": "git", 
+    "url": "https://github.com/Zweer/email-tester.git"
+  },
+  "bin": {
+    "email-tester": "./bin/email-tester"
+  },
+  "scripts": {
+    "start": "node index"
+  },
+  "dependencies": {
+    "nodemailer": "~0.5.5",
+    "optimist"  : "~0.6.0"
+  }
+}

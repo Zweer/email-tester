@@ -1,0 +1,82 @@
+#!/usr/bin/env node
+
+var optimist    = require('optimist');
+var fs          = require('fs');
+var path        = require('path');
+var nodemailer  = require('nodemailer');
+var emailTester = require('../index');
+
+var argv = optimist
+  .usage('Usage: email-tester [options]')
+  .demand('config')
+
+  .describe('html', 'The html to send')
+  .string('html')
+
+  .describe('text', 'The text to send')
+  .string('text')
+
+  .describe('help', 'Prints this help')
+  .alias('help', 'h')
+  .alias('help', '?')
+  .boolean('help')
+
+  .describe('version', 'Prints version info')
+  .alias('version', 'v')
+  .boolean('version')
+
+  .describe('config', 'Location of the configuration file')
+  .string('config')
+
+  .argv;
+
+if (argv.version) {
+  console.log(require('../package.json').version);
+  process.exit(0);
+}
+
+if (argv.help) {
+  optimist.showHelp();
+  process.exit(1);
+}
+
+if (!fs.existsSync(argv.config)) {
+  console.error('ERROR: Config file not found');
+  process.exit(1);
+}
+
+var config = require(path.join(process.cwd(), argv.config));
+
+var transportType = config.transport.type;
+var transportOptions = config.transport.options;
+
+var message = config.message;
+
+if (!transportType || !transportOptions || !message) {
+  console.error('ERROR: Config file not properly formatted!');
+  console.log('It must be a json file like this:');
+  console.log([
+    '{',
+    '  "transport": {',
+    '    "type": STRING,',
+    '    "options": {}',
+    '  },',
+    '  "message": {}',
+    '}'
+  ].join('\n'));
+  console.log('For the documentation of the transport and the message please refer to nodemailer documentation');
+}
+
+var transport = nodemailer.createTransport(transportType, transportOptions);
+
+message = emailTester.createMessage(message, argv.html, argv.text);
+
+transport.sendMail(message, function (err) {
+  if (err) {
+    console.error('ERROR: ' + err.message);
+    process.exit(1);
+  }
+
+  console.log('Message sent successfully');
+  transport.close();
+});
